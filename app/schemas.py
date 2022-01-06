@@ -5,8 +5,8 @@ from enum import Enum
 
 
 class Role(str, Enum):
-    ADMIN: str = "admin"
     REGULAR: str = "regular"
+    ADMIN: str = "admin"
 
 
 class UserBase(BaseModel):
@@ -24,7 +24,7 @@ class UserLogin(UserCreate):
 # Schema for response
 class User(UserBase):
     id: int
-    # role: Role = Field(exclude=True)
+    # role: Role #= Field(exclude=True)
     created_at: datetime
 
     class Config:
