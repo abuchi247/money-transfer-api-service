@@ -1,8 +1,18 @@
 from fastapi import status, HTTPException, Depends, APIRouter, Response
 from sqlalchemy.orm import Session
-from sqlalchemy import func
-from ..database import get_db
-from .. import schemas, models, utils, oauth2
+from app.db.session import get_db
+from .. import schemas
+from ..core import oauth2
+from ..core.hashing import Hasher
+from ..db import models
+from ..db.repository.users import (
+    retrieve_user_by_id,
+    retrieve_user_by_email,
+    create_new_user,
+    list_users,
+    update_user_by_id,
+    deactivate_user_by_id
+)
 from typing import List, Optional
 
 router = APIRouter(
@@ -11,108 +21,104 @@ router = APIRouter(
 )
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.User)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.ShowUser)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     # check if user already exists in the database
-    user_found = db.query(models.User).filter(models.User.email == user.email).first()
+    user_found = retrieve_user_by_email(email=user.email, db=db)
 
     # user email already taken
     if user_found:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail=f"User with email: {user.email!r} already taken")
 
-    # hash the password
-    hashed_password = utils.hash(user.password)
-    user.password = hashed_password
-
     # create a new user
-    new_user = models.User(**user.dict())
+    new_user = create_new_user(user=user, db=db)
 
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)  # retrieve the new user we created and store that in the new_user variable
     return new_user
 
 
-@router.get("/", response_model=List[schemas.UserOut])
+@router.get("/", response_model=List[schemas.ShowUser])
 def get_users(db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user),
               limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     # user must be an admin to view all other users
-    if current_user.role != "admin":
+    if current_user.is_superuser:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Not authorized to perform requested action")
 
-    results = db.query(models.User).filter(models.User.id != current_user.id).filter(models.User.email.contains(search)).limit(limit).offset(skip).all()
-    print(results)
+    results = list_users(db=db, limit=limit, search_email_phrase=search, skip=skip)
+
     return results
 
 
-@router.get("/{id}", response_model=schemas.UserOut)
+@router.get("/{id}", response_model=schemas.ShowUser)
 def get_user(id: int, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
     # user must be an admin to view all other users or current user can see his own information
-    if current_user.role != "admin" and current_user.id != id:
+    if current_user.is_superuser and current_user.id != id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Not authorized to perform requested action")
 
-    user = db.query(models.User).filter(models.User.id == id).first()
+    user = retrieve_user_by_id(id=id, db=db)
+    # user not found
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"User with id: {id!r} not found")
     return user
 
 
-@router.put("/{id}", response_model=schemas.UserOut)
-def update_user(id: int, user: schemas.UserBase, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+@router.put("/{id}", response_model=schemas.ShowUser)
+def update_user(id: int, user: schemas.UserBase, db: Session = Depends(get_db), current_user: models.User = Depends(
+    oauth2.get_current_user)):
     # user must be an admin to view all other users or user isn't changing his own information
-    if current_user.role != "admin" and current_user.id != id:
+    if current_user.is_superuser and current_user.id != id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Not authorized to perform requested action")
-    # user query
-    user_query = db.query(models.User).filter(models.User.id == id)
+
+    # check if user exists
+    user_found = retrieve_user_by_id(id=id, db=db)
 
     # user not found
-    if not user_query.first():
+    if not user_found:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"User with id: {id!r} not found")
 
-    # check if the new email already exists in the database
-    user_with_new_email_exists = db.query(models.User).filter(models.User.email == user.email).first()
+    # check if user email already taken by another user
+    user_with_email_already_exists = retrieve_user_by_email(email=user.email, db=db)
 
-    # new email already taken
-    if user_with_new_email_exists.id != id:
+
+    # user email exists but not ownered by the user we want to update
+    if user_with_email_already_exists.id != id:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail=f"User with email: {user.email!r} already taken")
 
-    # update user with new information
-    user_query.update(user.dict(), synchronize_session=False)
-    db.commit()
+    # generate the update schema needed by the db api
+    updated_user_schema = schemas.UserUpdate(**user)
 
-    return user_query.first()
+    user_updated = update_user_by_id(id=id, user=updated_user_schema, db=db)
+    # we should never get here unless user was updater by another user at the same time.
+    if not user_updated:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"User no longer exists. Something went wrong")
+
+    return user_updated
 
 
 @router.delete('/{id}')
 def delete_user(id: int, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
     # can only be performed by an admin
-    if current_user.role != "admin":
+    if not current_user.is_superuser:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Not authorized to perform requested action")
 
-    # logged in user cannot delete their information
-    if current_user.id == id:
-        raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,
-                            detail=f"Logged in users are prohibited from deleting their information")
+    # # logged in user cannot delete their information
+    # if current_user.id == id:
+    #     raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,
+    #                         detail=f"Logged in users are prohibited from deleting their information")
 
-    user_query = db.query(models.User).filter(models.User.id == id)
+    user_deactivated = deactivate_user_by_id(id=id, db=db)
 
     # user not found
-    if not user_query.first():
+    if not user_deactivated:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"User with id: {id!r} not found")
-
-    # delete user from db
-    user_query.delete(synchronize_session=False)
-
-    # commit changes
-    db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)

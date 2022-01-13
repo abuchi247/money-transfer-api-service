@@ -5,8 +5,11 @@ from datetime import datetime, timedelta
 from typing import Optional
 from sqlalchemy.orm import Session
 
-from . import schemas, database, models
-from .config import settings
+from .. import schemas
+from ..db import session
+from app.config import settings
+
+from ..db.repository.users import retrieve_user_by_id
 
 # SECRET_KEY
 # Algorithm
@@ -48,7 +51,7 @@ def verify_access_token(token: str, credentials_exception):
     return token_data
 
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(database.get_db)):
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(session.get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -57,6 +60,6 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 
     token = verify_access_token(token, credentials_exception)
 
-    current_user = db.query(models.User).filter(models.User.id == token.id).first()
+    current_user = retrieve_user_by_id(id=token.id, db=db)
 
     return current_user

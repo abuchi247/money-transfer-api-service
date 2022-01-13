@@ -4,9 +4,9 @@ from datetime import datetime
 from enum import Enum
 
 
-class Role(str, Enum):
-    REGULAR: str = "regular"
-    ADMIN: str = "admin"
+# class Role(str, Enum):
+#     REGULAR: str = "regular"
+#     ADMIN: str = "admin"
 
 
 class UserBase(BaseModel):
@@ -22,9 +22,15 @@ class UserLogin(UserCreate):
 
 
 # Schema for response
-class User(UserBase):
+class UserUpdate(UserCreate):
     id: int
-    # role: Role #= Field(exclude=True)
+    is_active: bool = True
+
+
+# Schema for response
+class ShowUser(UserBase):
+    id: int
+    is_active: bool = True
     created_at: datetime
 
     class Config:
@@ -32,11 +38,11 @@ class User(UserBase):
         # use_enum_values = True
 
 
-class UserOut(UserBase):
-    id: int
-
-    class Config:
-        orm_mode = True
+# class UserOut(UserBase):
+#     id: int
+#
+#     class Config:
+#         orm_mode = True
 
 
 class Token(BaseModel):
