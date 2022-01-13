@@ -18,7 +18,7 @@ def verify_credential(email, password, db: Session):
     user = retrieve_user_by_email(email=email, db=db)
 
     # user not found or password doesn't match
-    if not user or Hasher.verify_password(password, user.password):
+    if not user or not Hasher.verify_password(password, user.password):
         return False
     return user
 

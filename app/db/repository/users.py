@@ -62,7 +62,7 @@ def create_new_user(user: UserCreate, db: Session):
     return user
 
 
-def update_user_by_id(id: int, user: UserUpdate, db: Session):
+def update_user_by_id(id: int, user: dict, db: Session):
     """
     Update a user
     :param id:
@@ -75,7 +75,7 @@ def update_user_by_id(id: int, user: UserUpdate, db: Session):
     if not user_query.first():
         return False
 
-    user_query.update(user.dict(), synchronize_session=False)
+    user_query.update(user, synchronize_session=False)
     db.commit()
     return user_query.first()
 
@@ -98,7 +98,5 @@ def deactivate_user_by_id(id: int, db: Session, new_status: bool = False):
     # change user active status to inactive
     user.is_active = new_status
 
-    user_schema = UserUpdate(**user)
-
     # update user
-    return update_user_by_id(id=id, user=user_schema, db=db)
+    return update_user_by_id(id=id, user=user.to_json(), db=db)

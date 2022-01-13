@@ -16,6 +16,16 @@ class User(Base):
     is_superuser = Column(Boolean, nullable=False, server_default="FALSE")
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
 
+    def to_json(self):
+        return {
+            "id": self.id,
+            "email": self.email,
+            "password": self.password,
+            "is_active": self.is_active,
+            "is_superuser": self.is_superuser,
+            "created_at": self.created_at,
+        }
+
 
 # class Customer(Base):
 #     __tablename__ = "customers"

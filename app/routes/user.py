@@ -41,7 +41,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 def get_users(db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user),
               limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     # user must be an admin to view all other users
-    if current_user.is_superuser:
+    if not current_user.is_superuser:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Not authorized to perform requested action")
 
@@ -53,7 +53,7 @@ def get_users(db: Session = Depends(get_db), current_user: models.User = Depends
 @router.get("/{id}", response_model=schemas.ShowUser)
 def get_user(id: int, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
     # user must be an admin to view all other users or current user can see his own information
-    if current_user.is_superuser and current_user.id != id:
+    if not current_user.is_superuser and current_user.id != id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Not authorized to perform requested action")
 
@@ -66,10 +66,10 @@ def get_user(id: int, db: Session = Depends(get_db), current_user: models.User =
 
 
 @router.put("/{id}", response_model=schemas.ShowUser)
-def update_user(id: int, user: schemas.UserBase, db: Session = Depends(get_db), current_user: models.User = Depends(
+def update_user(id: int, user: schemas.UserUpdate, db: Session = Depends(get_db), current_user: models.User = Depends(
     oauth2.get_current_user)):
     # user must be an admin to view all other users or user isn't changing his own information
-    if current_user.is_superuser and current_user.id != id:
+    if not current_user.is_superuser and current_user.id != id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Not authorized to perform requested action")
 
@@ -86,14 +86,11 @@ def update_user(id: int, user: schemas.UserBase, db: Session = Depends(get_db), 
 
 
     # user email exists but not ownered by the user we want to update
-    if user_with_email_already_exists.id != id:
+    if user_with_email_already_exists and user_with_email_already_exists.id != id:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail=f"User with email: {user.email!r} already taken")
 
-    # generate the update schema needed by the db api
-    updated_user_schema = schemas.UserUpdate(**user)
-
-    user_updated = update_user_by_id(id=id, user=updated_user_schema, db=db)
+    user_updated = update_user_by_id(id=id, user=user.dict(), db=db)
     # we should never get here unless user was updater by another user at the same time.
     if not user_updated:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,

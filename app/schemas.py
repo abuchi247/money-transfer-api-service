@@ -22,9 +22,8 @@ class UserLogin(UserCreate):
 
 
 # Schema for response
-class UserUpdate(UserCreate):
-    id: int
-    is_active: bool = True
+class UserUpdate(UserBase):
+    pass
 
 
 # Schema for response
