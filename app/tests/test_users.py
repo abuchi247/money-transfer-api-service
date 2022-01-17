@@ -135,3 +135,23 @@ def test_admin_update_user_with_email_taken(authorized_admin_client, test_multip
     res = authorized_admin_client.put(f"/users/{user_to_retrieve.id}", json=update_user)
 
     assert res.status_code == 400
+
+
+def test_admin_deactivate_user(authorized_admin_client, test_multiple_users):
+    user_to_retrieve = test_multiple_users[len(test_multiple_users) - 1]
+    res = authorized_admin_client.delete(f"/users/{user_to_retrieve.id}")
+
+    assert res.status_code == 204
+
+
+def test_admin_deactivate_user_non_exists(authorized_admin_client, test_multiple_users):
+    res = authorized_admin_client.delete(f"/users/10000")
+
+    assert res.status_code == 404
+
+
+def test_unauthorized_deactivate_user(authorized_regular_client, test_multiple_users):
+    user_to_retrieve = test_multiple_users[len(test_multiple_users) - 1]
+    res = authorized_regular_client.delete(f"/users/{user_to_retrieve.id}")
+
+    assert res.status_code == 403
