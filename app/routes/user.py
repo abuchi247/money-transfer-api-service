@@ -91,10 +91,10 @@ def update_user(id: int, user: schemas.UserUpdate, db: Session = Depends(get_db)
                             detail=f"User with email: {user.email!r} already taken")
 
     user_updated = update_user_by_id(id=id, user=user.dict(), db=db)
-    # we should never get here unless user was updater by another user at the same time.
-    if not user_updated:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"User no longer exists. Something went wrong")
+    # # we should never get here unless user was updater by another user at the same time.
+    # if not user_updated:
+    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+    #                         detail=f"User no longer exists. Something went wrong")
 
     return user_updated
 
