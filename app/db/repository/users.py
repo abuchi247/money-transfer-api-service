@@ -42,9 +42,11 @@ def list_users(db: Session, limit: int = 10, skip: int = 0, search_email_phrase:
     return users
 
 
-def create_new_user(user: UserCreate, db: Session):
+def create_new_user(user: UserCreate, db: Session, is_active: bool = True, is_superuser: bool = False):
     """
     Creates a new user in the database
+    :param is_superuser:
+    :param is_active:
     :param user:
     :param db:
     :return:
@@ -52,8 +54,8 @@ def create_new_user(user: UserCreate, db: Session):
     user = User(
         email=user.email,
         password=Hasher.get_password_hash(user.password),
-        is_active=True,
-        is_superuser=False
+        is_active=is_active,
+        is_superuser=is_superuser
     )
 
     db.add(user)
@@ -80,10 +82,10 @@ def update_user_by_id(id: int, user: dict, db: Session):
     return user_query.first()
 
 
-def deactivate_user_by_id(id: int, db: Session, new_status: bool = False):
+def deactivate_user_by_id(id: int, db: Session, new_user_active_status: bool = False):
     """
     Deactivates a user
-    :param new_status:
+    :param new_user_active_status:
     :param id:
     :param db:
     :return:
@@ -96,7 +98,7 @@ def deactivate_user_by_id(id: int, db: Session, new_status: bool = False):
         return False
 
     # change user active status to inactive
-    user.is_active = new_status
+    user.is_active = new_user_active_status
 
     # update user
     return update_user_by_id(id=id, user=user.to_json(), db=db)
