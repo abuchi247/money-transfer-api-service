@@ -27,13 +27,24 @@ class User(Base):
         }
 
 
-# class Customer(Base):
-#     __tablename__ = "customers"
-#
-#     id = Column(Integer, primary_key=True, index=True)
-#     first_name = Column(String, nullable=False)
-#     last_name = Column(String, nullable=True)
-#     creator_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-#     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
-#
-#     creator = relationship("User")
+class Customer(Base):
+    __tablename__ = "customers"
+
+    id = Column(Integer, primary_key=True, index=True)
+    first_name = Column(String, nullable=False)
+    last_name = Column(String, nullable=True)
+    creator_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
+    updated_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'))
+
+    creator = relationship("User")
+
+    def to_json(self):
+        {
+            "id": self.id,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "creator_id": self.creator_id,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at
+        }
