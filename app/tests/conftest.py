@@ -8,7 +8,7 @@ from app.db.session import get_db, Base
 from app.db import models
 from app.config import settings
 from app.core.oauth2 import create_access_token
-from app.db.repository.users import create_new_user, list_users
+from app.db.repository.users import UserRepository
 from app import schemas
 
 # SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
@@ -40,7 +40,7 @@ def test_regular_user(session):
         "password": "test"
     }
 
-    new_user = create_new_user(user=schemas.UserCreate(**user_data), db=session)
+    new_user = UserRepository.create_new_user(user=schemas.UserCreate(**user_data), db=session)
     return new_user.to_json()
 
 
@@ -50,7 +50,7 @@ def test_admin_user(session):
         "email": "test@admin.com",
         "password": "admin"
     }
-    new_user = create_new_user(user=schemas.UserCreate(**user_data), db=session, is_superuser=True)
+    new_user = UserRepository.create_new_user(user=schemas.UserCreate(**user_data), db=session, is_superuser=True)
     return new_user.to_json()
 
 
@@ -77,9 +77,9 @@ def test_multiple_users(session):
 
     for user in users_data:
         # create a new user to the user
-        create_new_user(user=schemas.UserCreate(**user),db=session)
+        UserRepository.create_new_user(user=schemas.UserCreate(**user),db=session)
 
-    return list_users(db=session)
+    return UserRepository.list_users(db=session)
 
 
 @pytest.fixture

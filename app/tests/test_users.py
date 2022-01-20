@@ -12,7 +12,7 @@ from app.config import settings
 def test_create_user(client, email, password, status_code):
     res = client.post("/users/", json={"email": email, "password": password})
     new_user = schemas.ShowUser(**res.json())  # validate response schema
-    print(new_user)
+    # print(new_user)
     assert new_user.email == email
     assert res.status_code == status_code
 
