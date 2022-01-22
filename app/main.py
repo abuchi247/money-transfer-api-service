@@ -27,10 +27,6 @@ def start_application():
     configure_allowed_origins(app)
     return app
 
-#
-# @app.get("/")
-# def root():
-#     return {"message": "Welcome to money transfer api service"}
 
-
+# start application
 app = start_application()
