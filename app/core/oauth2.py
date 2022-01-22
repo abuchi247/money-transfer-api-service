@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from .. import schemas
 from ..db import session
-from app.config import settings
+from app.core.config import settings
 
 from ..db.repository.users import UserRepository
 

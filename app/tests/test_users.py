@@ -1,7 +1,7 @@
 import pytest
 from jose import jwt
 from app import schemas
-from app.config import settings
+from app.core.config import settings
 
 
 @pytest.mark.parametrize("email, password, status_code", [

@@ -5,7 +5,7 @@ from sqlalchemy import pool
 
 from alembic import context
 from app.db.models import Base # Abuchi Added
-from app.config import settings # Abuchi Added
+from app.core.config import settings # Abuchi Added
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -1,24 +1,36 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .routes import auth, user
-
-app = FastAPI()
-
-origins = ["*"]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+from app.core.config import settings
 
 
-app.include_router(auth.router)
-app.include_router(user.router)
+def include_router(app):
+    app.include_router(auth.router)
+    app.include_router(user.router)
 
 
-@app.get("/")
-def root():
-    return {"message": "Welcome to money transfer api service"}
+def configure_allowed_origins(app):
+    origins = ["*"]
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+
+def start_application():
+    app = FastAPI(
+        title=settings.project_title,
+        version=settings.project_version,
+        description=settings.project_description
+    )
+    include_router(app)
+    configure_allowed_origins(app)
+    return app
+
+
+# start application
+app = start_application()

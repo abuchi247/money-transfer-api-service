@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from .. import schemas
 from ..core import oauth2
-from ..core.hashing import Hasher
 from ..db import models
 from ..db.repository.users import UserRepository
 from typing import List, Optional

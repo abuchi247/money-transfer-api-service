@@ -5,8 +5,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.main import app
 from app.db.session import get_db, Base
-from app.db import models
-from app.config import settings
+from app.core.config import settings
 from app.core.oauth2 import create_access_token
 from app.db.repository.users import UserRepository
 from app import schemas
