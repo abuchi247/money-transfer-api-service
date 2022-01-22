@@ -22,7 +22,11 @@ def configure_allowed_origins(app):
 
 
 def start_application():
-    app = FastAPI(title=settings.project_title, version=settings.project_version)
+    app = FastAPI(
+        title=settings.project_title,
+        version=settings.project_version,
+        description=settings.project_description
+    )
     include_router(app)
     configure_allowed_origins(app)
     return app

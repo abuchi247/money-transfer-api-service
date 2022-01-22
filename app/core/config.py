@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     # API info
     project_title: str = "Money Transfer API"
     project_version: str = "0.1.0"
+    project_description: str = "This is the api definition for our money transfer services and record keeping"
 
     # database
     database_hostname: str
