@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from .. import schemas, utils
 from ..core import oauth2
 from ..db import models, session
-from ..db.repository.auth import verify_user_isactive, verify_credential
+from ..db.repository.auth import AuthRepository
 
 router = APIRouter(tags=['Authentication'])
 
@@ -13,7 +13,7 @@ router = APIRouter(tags=['Authentication'])
 def login_for_access_token(user_credentials: OAuth2PasswordRequestForm = Depends(),
                            db: Session = Depends(session.get_db)):
 
-    user = verify_credential(email=user_credentials.username, password=user_credentials.password, db=db)
+    user = AuthRepository.verify_credential(email=user_credentials.username, password=user_credentials.password, db=db)
 
     # user not found or invalid password
     if not user:
@@ -21,7 +21,7 @@ def login_for_access_token(user_credentials: OAuth2PasswordRequestForm = Depends
                             detail=f"Invalid credentials")
 
     # ensure the user is active
-    user = verify_user_isactive(user)
+    user = AuthRepository.verify_user_isactive(user)
 
     # user account is delete == deactivated
     if not user:

@@ -9,7 +9,7 @@ from .. import schemas
 from ..db import session
 from app.config import settings
 
-from ..db.repository.users import retrieve_user_by_id
+from ..db.repository.users import UserRepository
 
 # SECRET_KEY
 # Algorithm
@@ -60,6 +60,6 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 
     token = verify_access_token(token, credentials_exception)
 
-    current_user = retrieve_user_by_id(id=token.id, db=db)
+    current_user = UserRepository.retrieve_user_by_id(id=token.id, db=db)
 
     return current_user
