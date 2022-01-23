@@ -41,7 +41,7 @@ class Customer(Base):
     creator = relationship("User")
 
     def to_json(self):
-        {
+        return {
             "id": self.id,
             "first_name": self.first_name,
             "last_name": self.last_name,
