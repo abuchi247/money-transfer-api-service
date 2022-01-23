@@ -2,7 +2,7 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from app.schemas import UserCreate, UserUpdate
+from app.schemas import UserCreate
 from app.db.models import User
 from app.core.hashing import Hasher
 
@@ -19,7 +19,6 @@ class UserRepository:
         user = db.query(User).filter(User.id == id).first()
         return user
 
-
     @staticmethod
     def retrieve_user_by_email(email: str, db: Session):
         """
@@ -30,7 +29,6 @@ class UserRepository:
         """
         user = db.query(User).filter(User.email == email).first()
         return user
-
 
     @staticmethod
     def list_users(db: Session, limit: int = 10, skip: int = 0, search_email_phrase: Optional[str] = ""):
@@ -44,7 +42,6 @@ class UserRepository:
         """
         users = db.query(User).filter(User.email.contains(search_email_phrase)).limit(limit).offset(skip).all()
         return users
-
 
     @staticmethod
     def create_new_user(user: UserCreate, db: Session, is_active: bool = True, is_superuser: bool = False):
@@ -68,7 +65,6 @@ class UserRepository:
         db.refresh(user)
         return user
 
-
     @staticmethod
     def update_user_by_id(id: int, user: dict, db: Session):
         """
@@ -86,7 +82,6 @@ class UserRepository:
         user_query.update(user, synchronize_session=False)
         db.commit()
         return user_query.first()
-
 
     @classmethod
     def deactivate_user_by_id(cls, id: int, db: Session, new_user_active_status: bool = False):

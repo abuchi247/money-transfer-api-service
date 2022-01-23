@@ -37,13 +37,6 @@ class ShowUser(UserBase):
         # use_enum_values = True
 
 
-# class UserOut(UserBase):
-#     id: int
-#
-#     class Config:
-#         orm_mode = True
-
-
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -51,3 +44,22 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     id: Optional[str] = None
+
+
+class CustomerBase(BaseModel):
+    first_name: str
+    last_name: str = None
+
+
+class CustomerCreate(CustomerBase):
+    pass
+
+
+class ShowCustomer(CustomerBase):
+    id: str
+    creator_id: str
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        orm_mode = True

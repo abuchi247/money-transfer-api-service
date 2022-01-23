@@ -9,7 +9,7 @@ from .. import schemas
 from ..db import session
 from app.core.config import settings
 
-from ..db.repository.users import UserRepository
+from ..db.repository.user import UserRepository
 
 # SECRET_KEY
 # Algorithm

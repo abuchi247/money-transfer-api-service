@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from ..models import User
-from ..repository.users import UserRepository
+from ..repository.user import UserRepository
 from app.core.hashing import Hasher
 
 

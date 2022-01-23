@@ -4,7 +4,7 @@ from app.db.session import get_db
 from .. import schemas
 from ..core import oauth2
 from ..db import models
-from ..db.repository.users import UserRepository
+from ..db.repository.user import UserRepository
 from typing import List, Optional
 
 router = APIRouter(

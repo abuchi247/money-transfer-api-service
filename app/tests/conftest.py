@@ -7,7 +7,7 @@ from app.main import app
 from app.db.session import get_db, Base
 from app.core.config import settings
 from app.core.oauth2 import create_access_token
-from app.db.repository.users import UserRepository
+from app.db.repository.user import UserRepository
 from app import schemas
 
 # SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"

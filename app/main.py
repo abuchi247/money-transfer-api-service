@@ -10,6 +10,7 @@ def include_router(app):
 
 
 def configure_allowed_origins(app):
+    # allow all origin
     origins = ["*"]
 
     app.add_middleware(
